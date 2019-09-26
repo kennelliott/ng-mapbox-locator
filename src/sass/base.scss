@@ -1,14 +1,39 @@
-@import './lib/styleguide-colors.scss';
-@import './lib/styleguide-fonts.scss';
-@import './lib/variables.scss';
+// @import './lib/styleguide-colors.scss';
+// @import './lib/styleguide-fonts.scss';
+// @import './lib/variables.scss';
 
-#ng-mapbox-locator {
+.media--hub-cinematic {
+    margin: 0 !important;
+}
 
-	@import './lib/ngm-light.scss';
-	//@import './lib/ngm-dark.scss';
+.ng-locator-map {
+	position:relative;
 
-	/* YOUR PROJECT CSS OR SASS HERE */
+    // @import './lib/ngm-light.scss';
+    @import './mapbox-gl.scss';
+    //@import './lib/ngm-dark.scss';
 
+    /* YOUR PROJECT CSS OR SASS HERE */
+    .ng-locator-map-meta {
+        opacity: 0.5;
+        filter: Alpha(opacity=50);
+        position: absolute;
+        z-index: 1;
+        bottom: 10px;
+        left: 50%;
+        transform: translate(-50%,0);
+        line-height: 1.0;
+        width: 100%;
+        text-align: center;
+
+        a {color:#222;}
+    }
+
+    .ng-locator-map-inner {
+    	margin:0 0px 0 0px;padding:0;width:100%;height:400px
+    }
+
+	a.mapboxgl-ctrl-logo{display: none;} .mapboxgl-ctrl-compass{display: none;}
 
 
 }

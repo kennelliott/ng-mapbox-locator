@@ -1,4 +1,16 @@
 {
     "docs": [],
-    "sheets": []
+    "sheets": [],
+    "published_project": {
+        "ng-mapbox-locator": [
+            {
+                "id": "build-2019-09-26_18-19-20",
+                "url": "https://www.nationalgeographic.com/interactive-assets/nggraphics/ng-mapbox-locator/build-2019-09-26_18-19-20"
+            },
+            {
+                "id": "v1",
+                "url": "https://www.nationalgeographic.com/interactive-assets/nggraphics/ng-mapbox-locator/v1"
+            }
+        ]
+    }
 }

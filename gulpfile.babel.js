@@ -38,7 +38,11 @@ const staging = false;
 const publishUrl = staging ? 'https://www-staging.nationalgeographic.com/interactive-assets/nggraphics/' : 'https://www.nationalgeographic.com/interactive-assets/nggraphics/'
 const tilesUrl = 'https://tiles.nationalgeographic.com/'
 const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
+// const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
+// CHANGE THE VERSION TO PREVENT OVERWRITE
+const timePath = "v1"
+
+
 const cwd = path.basename(process.cwd());
 const templates = fs.readdirSync("src/html/__templates").map(file => { return file.split(".")[0] })
 

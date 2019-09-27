@@ -35,9 +35,13 @@ class NGLocator {
 					© NGP, Content may not reflect <a href="https://www.nationalgeographic.com/maps/cartographic-policies/" target="new">National Geographic's current map policy</a>.
 				</div>
         	`
+        // set as processed
         this.el.setAttribute(this.flag, true)
+        // add a class for easier styling
         this.el.classList.add("ng-locator-map")
+        // insert the template
         this.el.insertAdjacentHTML('beforeend', tpl);
+        // make reference to where map will go
         this.mapEl = this.el.querySelector(".ng-locator-map-inner")
     }
 
@@ -106,13 +110,12 @@ class NGLocator {
                     });
                 })
             });
-
-
         }
     }
 
     parseStyle(selectedStyle) {
-        let addedStyle
+    	// default is travel
+        let addedStyle;
         if (selectedStyle == "dark") {
             addedStyle = 'mapbox://styles/jelder/cji17s1zq0vqc2rnnj8nztodj';
         } else if (selectedStyle == "light") {

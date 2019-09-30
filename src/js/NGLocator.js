@@ -49,7 +49,7 @@ class NGLocator {
 
         mapboxgl.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
 
-        var map = new mapboxgl.Map({
+        this.map = new mapboxgl.Map({
             container: this.mapEl,
             style: this.parseStyle(this.config.style),
             center: this.config.center,
@@ -59,62 +59,124 @@ class NGLocator {
             pitchWithRotate: false,
             maxBounds: this.config.bounds
         });
-        map.addControl(new mapboxgl.NavigationControl());
-        map.scrollZoom.disable();
-        map.dragRotate.disable();
-        map.touchZoomRotate.disableRotation();
+        this.map.addControl(new mapboxgl.NavigationControl());
+        this.map.scrollZoom.disable();
+        this.map.dragRotate.disable();
+        this.map.touchZoomRotate.disableRotation();
 
         //only does this part if user has added a point
         //inserts add point function into code
-        if (this.config.displayPoint) {
 
-            var iconURL = "ngm-assets/img/" + this.config.iconStyle + "-" + this.config.iconColor + "-01-01.png"
+        this.map.on('load', () => {
+            this.mapLoadEvent()
+        });
 
-            map.on('load', () => {
-                map.loadImage(iconURL, (error, image) => {
-                    if (error) throw error;
-                    map.addImage("POI" + this.config.uniqueTime, image);
-                    map.addLayer({
-                        "id": "point-circle" + this.config.uniqueTime,
-                        "type": "symbol",
-                        "source": {
-                            "type": "geojson",
-                            "data": {
-                                "type": "FeatureCollection",
-                                "features": [{
-                                    "type": "Feature",
-                                    "geometry": {
-                                        "type": "Point",
-                                        "coordinates": this.config.point
-                                    },
-                                    "properties": {
-                                        "title": this.config.pointName
-                                    }
-                                }]
-                            }
-                        },
-                        "layout": {
-                            "icon-image": "POI" + this.config.uniqueTime,
-                            "icon-size": this.config.iconSize,
-                            "text-field": "{title}",
-                            "text-font": ["Geograph Edit Medium"],
-                            "text-offset": this.config.iconOffset,
-                            "text-anchor": this.config.textAnchor,
-                            "text-justify": this.config.textJustify
-                        },
-                        "paint": {
-                            "text-color": this.config.highlightColor,
-                            "icon-opacity": this.config.stops,
-                            "text-opacity": this.config.stops
-                        }
-                    });
-                })
-            });
-        }
+        this.map.on('moveend', () => {
+            // kill the crashing labels at edge after moving map
+            this.edgeLabelCrashKiller()
+        })
+
     }
 
+
+    mapLoadEvent() {
+        if (this.config.displayPoint) {
+            var iconURL = "ngm-assets/img/" + this.config.iconStyle + "-" + this.config.iconColor + "-01-01.png"
+            this.map.loadImage(iconURL, (error, image) => {
+                if (error) throw error;
+                this.map.addImage("POI" + this.config.uniqueTime, image);
+                this.map.addLayer({
+                    "id": "point-circle" + this.config.uniqueTime,
+                    "type": "symbol",
+                    "source": {
+                        "type": "geojson",
+                        "data": {
+                            "type": "FeatureCollection",
+                            "features": [{
+                                "type": "Feature",
+                                "geometry": {
+                                    "type": "Point",
+                                    "coordinates": this.config.point
+                                },
+                                "properties": {
+                                    "title": this.config.pointName
+                                }
+                            }]
+                        }
+                    },
+                    "layout": {
+                        "icon-image": "POI" + this.config.uniqueTime,
+                        "icon-size": this.config.iconSize,
+                        "text-field": "{title}",
+                        "text-font": ["Geograph Edit Medium"],
+                        "text-offset": this.config.iconOffset,
+                        "text-anchor": this.config.textAnchor,
+                        "text-justify": this.config.textJustify
+                    },
+                    "paint": {
+                        "text-color": this.config.highlightColor,
+                        "icon-opacity": this.config.stops,
+                        "text-opacity": this.config.stops
+                    }
+                });
+            })
+        }
+
+        // kill the crashing labels at edge on initial load
+        this.edgeLabelCrashKiller()
+
+    }
+
+    edgeLabelCrashKiller() {
+    	// from here
+        // https://github.com/mapbox/mapbox-gl-js/issues/6432
+    	//debug collisions
+    	this.map.showCollisionBoxes = true
+
+        if (this.map.getLayer('viewport-line-symbols')) this.map.removeLayer('viewport-line-symbols');
+        if (this.map.getSource("viewport-line")) this.map.removeSource('viewport-line')
+        if (this.map.hasImage("pixel")) this.map.removeImage('pixel')
+
+
+        var viewport = this.map.getBounds()
+
+        this.map.addSource('viewport-line', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                        [viewport._sw.lng, viewport._sw.lat],
+                        [viewport._sw.lng, viewport._ne.lat],
+                        [viewport._ne.lng, viewport._ne.lat],
+                        [viewport._ne.lng, viewport._sw.lat],
+                        [viewport._sw.lng, viewport._sw.lat]
+                    ]
+                }
+            }
+        })
+
+        var width = 10
+        var data = new Uint8Array(width * width * 4)
+        this.map.addImage('pixel', { width: width, height: width, data: data })
+
+        this.map.addLayer({
+            id: 'viewport-line-symbols',
+            type: 'symbol',
+            source: 'viewport-line',
+            layout: {
+                'icon-image': 'pixel',
+                'symbol-placement': 'line',
+                'symbol-spacing': 16
+            }
+        })
+    }
+
+
     parseStyle(selectedStyle) {
-    	// default is travel
+        // default is travel
         let addedStyle;
         if (selectedStyle == "dark") {
             addedStyle = 'mapbox://styles/jelder/cji17s1zq0vqc2rnnj8nztodj';

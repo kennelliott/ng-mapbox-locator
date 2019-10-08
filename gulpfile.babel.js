@@ -34,13 +34,15 @@ import runSequence from 'run-sequence';
 import GraphicsDeployer from './.trudy/GraphicsDeployer/GraphicsDeployer.js';
 import trudyConfig from './config.json';
 
+import inquirer from 'inquirer'
+
 const staging = false;
 const publishUrl = staging ? 'https://www-staging.nationalgeographic.com/interactive-assets/nggraphics/' : 'https://www.nationalgeographic.com/interactive-assets/nggraphics/'
 const tilesUrl = 'https://tiles.nationalgeographic.com/'
 const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-// const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
+const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
 // CHANGE THE VERSION TO PREVENT OVERWRITE
-const timePath = "v1"
+const version = "v1" // timePath
 
 
 const cwd = path.basename(process.cwd());
@@ -49,12 +51,12 @@ const templates = fs.readdirSync("src/html/__templates").map(file => { return fi
 const PATHS = {
     publishUrl: publishUrl,
     tilesUrl: tilesUrl,
-    publicPrefix: publishUrl + cwd + '/' + timePath,
-    timePath: timePath,
+    publicPrefix: publishUrl + cwd + '/' + version,
+    timePath: version,
     cwd: cwd,
     src: 'src',
     dev: '.dev',
-    publish: 'publish/' + timePath,
+    publish: 'publish/' + version,
     tiles: 'large-files/tiles/',
     hbsData: 'data/hbs/',
     html: 'src/html/**/*.html',
@@ -288,7 +290,7 @@ gulp.task('css-prod', () => {
         // .pipe(cssmin())
         .pipe(sourcemaps.init())
         .pipe(cleanCSS())
-        .pipe(sourcemaps.write())
+        // .pipe(sourcemaps.write())
         .on('error', function(err) {
             logError(err);
             this.emit('end');
@@ -416,6 +418,31 @@ gulp.task('tilesDeployer', (cb) => {
      }
 });
 
+gulp.task('pubcheck', (cb) => {
+        const question = [
+                {
+                    name: 'checkOverwrite',
+                    type: 'list',
+                    message: `WARNING: This project is configured to publish and overwrite the previous version, ${PATHS.timePath}. Doing this will affect code in all all published ${PATHS.timePath} embeds. Sure about this? `,
+                    choices: ['Yes', 'No'],
+                    default: 'No'
+                }
+            ];
+
+            if (timePath !== PATHS.timePath)  {
+                inquirer.prompt(question).then((answers) => {
+                    if (answers.checkOverwrite == "Yes") {
+                        cb()
+                    } else {
+                        log(chalk.red('PUBLISH CANCELLED'))
+                    }
+                });
+            } else {
+                cb()
+            }
+
+})
+
 
 // runs the main task as the files change
 gulp.task('watch', () => {
@@ -430,5 +457,5 @@ gulp.task('dev', gulp.parallel('assets', 'css', 'js', gulp.series('jsonHbs', 'ht
 gulp.task('default', gulp.series('dev', gulp.parallel('browserSync', 'watch')));
 gulp.task('dev-pre-prod', gulp.parallel(gulp.series('jsonHbs', 'html'), 'assets', 'css', 'js-dev-only'));
 gulp.task('production', gulp.parallel('html-prod', 'assets-prod', 'css-prod', 'js-prod'));
-gulp.task('publish', gulp.series('cleanDev', 'cleanPublish', 'dev-pre-prod', 'production', 'graphicsDeployer'));
+gulp.task('publish', gulp.series('pubcheck', 'cleanDev', 'cleanPublish', 'dev-pre-prod', 'production', 'graphicsDeployer'));
 gulp.task('publish-tiles', gulp.series('tilesDeployer'));

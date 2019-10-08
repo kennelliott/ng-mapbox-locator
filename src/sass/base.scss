@@ -2,13 +2,16 @@
 // @import './lib/styleguide-fonts.scss';
 // @import './lib/variables.scss';
 
-.media--hub-cinematic {
-    margin: 0 !important;
-}
+
+// .media--hub-cinematic {
+//     margin: 0 !important;
+// }
 
 .ng-locator-map {
 	position:relative;
 
+	// width: 90%;
+	// margin: 0 auto;
     // @import './lib/ngm-light.scss';
     @import './mapbox-gl.scss';
     //@import './lib/ngm-dark.scss';
@@ -25,6 +28,7 @@
         line-height: 1.0;
         width: 100%;
         text-align: center;
+        font-size: 12px;
 
         a {color:#222;}
     }
@@ -34,6 +38,4 @@
     }
 
 	a.mapboxgl-ctrl-logo{display: none;} .mapboxgl-ctrl-compass{display: none;}
-
-
 }

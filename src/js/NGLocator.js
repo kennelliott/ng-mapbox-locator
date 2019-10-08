@@ -1,30 +1,52 @@
 import * as mapboxgl from 'mapbox-gl';
+mapboxgl.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
+
+const FLAG = "data-ng-locator-map-processed"
 
 class NGLocator {
-    constructor(opts) {
-        //apply base options
-        this.el = null
-        Object.assign(this, opts);
+    constructor(opts = {}) {
+    	// It's possible a page will attempt to reproecess a container. 
+    	// Checking for the existance of a data attribute will prevent this.
+        if (!opts.el.getAttribute(FLAG)) {
 
-        this.flag = "data-ng-locator-map-processed"
+        	// Throw errors if necessary
+            if (opts.mapOptions) {
+                if (opts.mapOptions.style) {
+                    throw new Error("NGLocator: Do not provide a url to a style, only a top level styleId is valid.")
+                }
+                if (opts.mapOptions.container) {
+                    throw new Error("NGLocator: Do not provide refernce to a container. Use the top level 'el' option instead")
+                }
+            }
 
-        // only run the code if some other embed hasnt processed it
-        if (!this.el.getAttribute(this.flag)) {
+            // Get DOM config if available to override defaults
+            const DOMConfigEl = opts.el.querySelector('[data-ng-locator-map-options]')
+            const DOMConfig = DOMConfigEl ? JSON.parse(DOMConfigEl.textContent) : {}
 
-            // defaults, override with input "config" options
-            this.config = {
+            // merge DOM config into top level defaults into *this*
+            Object.assign(this, {
+                styleId: 'travel',
+                el: null,
+                iconRoot: "ngm-assets/img",
+                mapFeatures: [],
+                mapOptions: {}
+            }, opts, DOMConfig );
+
+            // merge DOM config mapOptions into defaults into this.mapOptions
+            Object.assign(this.mapOptions, {
                 center: [0, 0],
                 zoom: 1,
-                style: 'travel'
-            }
-            Object.assign(this.config, opts.config);
+                attributionControl: false,
+                maxZoom: 14,
+                pitchWithRotate: false
+                // maxBounds: this.config.bounds
+            }, opts.mapOptions, DOMConfig.mapOptions || {});
 
-            // override with DOM config if available
-            this.optionsEl = this.el.querySelector('[data-ng-locator-map-options]')
-            this.config = this.el && this.optionsEl ? JSON.parse(this.optionsEl.textContent) : this.config
-
+            // start the render
             this.renderEl()
             this.renderMap()
+
+            return this
         }
     }
 
@@ -36,36 +58,28 @@ class NGLocator {
 				</div>
         	`
         // set as processed
-        this.el.setAttribute(this.flag, true)
+        this.el.setAttribute(FLAG, true)
         // add a class for easier styling
         this.el.classList.add("ng-locator-map")
         // insert the template
         this.el.insertAdjacentHTML('beforeend', tpl);
         // make reference to where map will go
         this.mapEl = this.el.querySelector(".ng-locator-map-inner")
+        // set the map el
+
     }
 
     renderMap() {
+        // get style url from style id
+        this.mapOptions.style = this.parseStyle(this.styleId)
+        // container is the inserted child element
+        this.mapOptions.container = this.mapEl
 
-        mapboxgl.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
-
-        this.map = new mapboxgl.Map({
-            container: this.mapEl,
-            style: this.parseStyle(this.config.style),
-            center: this.config.center,
-            zoom: this.config.zoom,
-            attributionControl: false,
-            maxZoom: 14,
-            pitchWithRotate: false,
-            maxBounds: this.config.bounds
-        });
+        this.map = new mapboxgl.Map(this.mapOptions);
         this.map.addControl(new mapboxgl.NavigationControl());
         this.map.scrollZoom.disable();
         this.map.dragRotate.disable();
         this.map.touchZoomRotate.disableRotation();
-
-        //only does this part if user has added a point
-        //inserts add point function into code
 
         this.map.on('load', () => {
             this.mapLoadEvent()
@@ -78,49 +92,22 @@ class NGLocator {
 
     }
 
-
     mapLoadEvent() {
-        if (this.config.displayPoint) {
-            var iconURL = "ngm-assets/img/" + this.config.iconStyle + "-" + this.config.iconColor + "-01-01.png"
-            this.map.loadImage(iconURL, (error, image) => {
-                if (error) throw error;
-                this.map.addImage("POI" + this.config.uniqueTime, image);
-                this.map.addLayer({
-                    "id": "point-circle" + this.config.uniqueTime,
-                    "type": "symbol",
-                    "source": {
-                        "type": "geojson",
-                        "data": {
-                            "type": "FeatureCollection",
-                            "features": [{
-                                "type": "Feature",
-                                "geometry": {
-                                    "type": "Point",
-                                    "coordinates": this.config.point
-                                },
-                                "properties": {
-                                    "title": this.config.pointName
-                                }
-                            }]
-                        }
-                    },
-                    "layout": {
-                        "icon-image": "POI" + this.config.uniqueTime,
-                        "icon-size": this.config.iconSize,
-                        "text-field": "{title}",
-                        "text-font": ["Geograph Edit Medium"],
-                        "text-offset": this.config.iconOffset,
-                        "text-anchor": this.config.textAnchor,
-                        "text-justify": this.config.textJustify
-                    },
-                    "paint": {
-                        "text-color": this.config.highlightColor,
-                        "icon-opacity": this.config.stops,
-                        "text-opacity": this.config.stops
-                    }
-                });
-            })
-        }
+        // loop through features, load icons if necessary
+        this.mapFeatures.forEach((mapFeature, i) => {
+            const iconImageId = mapFeature.layout["icon-image"];
+
+            if (iconImageId) {
+                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                	if (error) return console.error(error)
+
+                    this.map.addImage(iconImageId, image);
+                    this.map.addLayer(mapFeature);
+                })
+            } else {
+                this.map.addLayer(mapFeature);
+            }
+        })
 
         // kill the crashing labels at edge on initial load
         this.edgeLabelCrashKiller()
@@ -128,10 +115,10 @@ class NGLocator {
     }
 
     edgeLabelCrashKiller() {
-    	// from here
+        // from here
         // https://github.com/mapbox/mapbox-gl-js/issues/6432
-    	//debug collisions
-    	this.map.showCollisionBoxes = true
+        //debug collisions
+        // this.map.showCollisionBoxes = true
 
         if (this.map.getLayer('viewport-line-symbols')) this.map.removeLayer('viewport-line-symbols');
         if (this.map.getSource("viewport-line")) this.map.removeSource('viewport-line')
@@ -169,9 +156,14 @@ class NGLocator {
             layout: {
                 'icon-image': 'pixel',
                 'symbol-placement': 'line',
-                'symbol-spacing': 16
+                'symbol-spacing': 10
             }
         })
+    }
+
+
+    getImageUrl(id) {
+        return `${this.iconRoot}/${id}-01-01.png`
     }
 
 
@@ -179,27 +171,20 @@ class NGLocator {
         // default is travel
         let addedStyle;
         if (selectedStyle == "dark") {
-            addedStyle = 'mapbox://styles/jelder/cji17s1zq0vqc2rnnj8nztodj';
+            addedStyle = 'mapbox://styles/jelder/cji17s1zq0vqc2rnnj8nztodj?optimize=true';
         } else if (selectedStyle == "light") {
-            addedStyle = 'mapbox://styles/jelder/cjhk1iruf181q2sn6egn70xxx';
+            addedStyle = 'mapbox://styles/jelder/cjhk1iruf181q2sn6egn70xxx?optimize=true';
         } else if (selectedStyle == "travel") {
-            addedStyle = 'mapbox://styles/jelder/cjfn0m2nr1k0j2ss4idgbagcg';
-        } else if (selectedStyle == "policital") {
-            addedStyle = 'mapbox://styles/jelder/cjhih1d850ats2rnfkxno7r99';
+            addedStyle = 'mapbox://styles/jelder/cjfn0m2nr1k0j2ss4idgbagcg?optimize=true';
+        } else if (selectedStyle == "political") {
+            addedStyle = 'mapbox://styles/jelder/cjhih1d850ats2rnfkxno7r99?optimize=true';
         } else if (selectedStyle == "expeditions") {
-            addedStyle = 'mapbox://styles/jelder/cjh1o47u50flc2rpm4h4dd37x';
+            addedStyle = 'mapbox://styles/jelder/cjh1o47u50flc2rpm4h4dd37x?optimize=true';
         } else if (selectedStyle == "community") {
-            addedStyle = 'mapbox://styles/jelder/cjiuzcajb6to92smm7vz0ucfk';
+            addedStyle = 'mapbox://styles/jelder/cjiuzcajb6to92smm7vz0ucfk?optimize=true';
         }
         return addedStyle
-    }
 
-    parseParams(options) {
-        try {
-            return options ? JSON.parse(options) : null;
-        } catch (e) {
-            throw e;
-        }
     }
 
 

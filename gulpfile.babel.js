@@ -419,28 +419,27 @@ gulp.task('tilesDeployer', (cb) => {
 });
 
 gulp.task('pubcheck', (cb) => {
-        const question = [
-                {
-                    name: 'checkOverwrite',
-                    type: 'list',
-                    message: `WARNING: This project is configured to publish and overwrite the previous version, ${PATHS.timePath}. Doing this will affect code in all all published ${PATHS.timePath} embeds. Sure about this? `,
-                    choices: ['Yes', 'No'],
-                    default: 'No'
-                }
-            ];
-
-            if (timePath !== PATHS.timePath)  {
-                inquirer.prompt(question).then((answers) => {
-                    if (answers.checkOverwrite == "Yes") {
-                        cb()
-                    } else {
-                        log(chalk.red('PUBLISH CANCELLED'))
-                    }
-                });
-            } else {
-                cb()
+    const question = [
+            {
+                name: 'checkOverwrite',
+                type: 'list',
+                message: `WARNING: This project is configured to publish and overwrite the previous version, ${PATHS.timePath}. Doing this will affect code in all all published ${PATHS.timePath} embeds. Sure about this? `,
+                choices: ['Yes', 'No'],
+                default: 'No'
             }
+        ];
 
+        if (timePath !== PATHS.timePath)  {
+            inquirer.prompt(question).then((answers) => {
+                if (answers.checkOverwrite == "Yes") {
+                    cb()
+                } else {
+                    log(chalk.red('PUBLISH CANCELLED'))
+                }
+            });
+        } else {
+            cb()
+        }
 })
 
 

@@ -115,11 +115,13 @@ These same options can be passed to a function to be used in an interactive proj
 - `el` : An additional key should be passed which references a selected DOM element.
 
 ```
-const locator = new NGLocator({
-    el: document.querySelector("#container-for-map"),  
-    mapOptions: {}, 
-    mapFeatures: []
-})
+const locator = new NGLocator(document.querySelector("#container-for-map"), 
+    {
+        styleId: '' 
+        mapOptions: {}, 
+        mapFeatures: []
+    }
+)
 ```
 
 Maps can be further customized by accessing the mapbox gl reference. For example: 

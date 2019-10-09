@@ -4,10 +4,10 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79Nwtz
 const FLAG = "data-ng-locator-map-processed"
 
 class NGLocator {
-    constructor(opts = {}) {
+    constructor(el, opts = {}) {
     	// It's possible a page will attempt to reproecess a container. 
     	// Checking for the existance of a data attribute will prevent this.
-        if (!opts.el.getAttribute(FLAG)) {
+        if (!el.getAttribute(FLAG)) {
 
         	// Throw errors if necessary
             if (opts.mapOptions) {
@@ -20,13 +20,13 @@ class NGLocator {
             }
 
             // Get DOM config if available to override defaults
-            const DOMConfigEl = opts.el.querySelector('[data-ng-locator-map-options]')
+            const DOMConfigEl = el.querySelector('[data-ng-locator-map-options]')
             const DOMConfig = DOMConfigEl ? JSON.parse(DOMConfigEl.textContent) : {}
 
             // merge DOM config into top level defaults into *this*
             Object.assign(this, {
                 styleId: 'travel',
-                el: null,
+                el: el,
                 iconRoot: "ngm-assets/img",
                 mapFeatures: [],
                 mapOptions: {}

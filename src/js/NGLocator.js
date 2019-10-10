@@ -163,7 +163,7 @@ class NGLocator {
 
 
     getImageUrl(id) {
-        return `${this.iconRoot}/${id}-01-01.png`
+        return `${this.iconRoot}/${id.split("___")[0]}-01-01.png`
     }
 
 

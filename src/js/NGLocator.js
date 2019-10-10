@@ -5,11 +5,11 @@ const FLAG = "data-ng-locator-map-processed"
 
 class NGLocator {
     constructor(el, opts = {}) {
-    	// It's possible a page will attempt to reproecess a container. 
-    	// Checking for the existance of a data attribute will prevent this.
+        // It's possible a page will attempt to reproecess a container. 
+        // Checking for the existance of a data attribute will prevent this.
         if (!el.getAttribute(FLAG)) {
 
-        	// Throw errors if necessary
+            // Throw errors if necessary
             if (opts.mapOptions) {
                 if (opts.mapOptions.style) {
                     throw new Error("NGLocator: Do not provide a url to a style, only a top level styleId is valid.")
@@ -32,8 +32,8 @@ class NGLocator {
                 mapOptions: {}
             }, opts, DOMConfig );
 
-            // merge DOM config mapOptions into defaults into this.mapOptions
-            Object.assign(this.mapOptions, {
+           // deep merge DOM config mapOptions into defaults into this.mapOptions
+            this.mapOptions = Object.assign({}, {
                 center: [0, 0],
                 zoom: 1,
                 attributionControl: false,
@@ -52,11 +52,11 @@ class NGLocator {
 
     renderEl() {
         const tpl = `
-        		<div class="ng-locator-map-inner"></div>
-				<div class="ng-locator-map-meta">
-					© NGP, Content may not reflect <a href="https://www.nationalgeographic.com/maps/cartographic-policies/" target="new">National Geographic's current map policy</a>.
-				</div>
-        	`
+                <div class="ng-locator-map-inner"></div>
+                <div class="ng-locator-map-meta">
+                    © NGP, Content may not reflect <a href="https://www.nationalgeographic.com/maps/cartographic-policies/" target="new">National Geographic's current map policy</a>.
+                </div>
+            `
         // set as processed
         this.el.setAttribute(FLAG, true)
         // add a class for easier styling
@@ -76,6 +76,8 @@ class NGLocator {
         this.mapOptions.container = this.mapEl
 
         this.map = new mapboxgl.Map(this.mapOptions);
+
+        console.log(this.map, this.map.getZoom(), this.mapOptions)
         this.map.addControl(new mapboxgl.NavigationControl());
         this.map.scrollZoom.disable();
         this.map.dragRotate.disable();
@@ -99,7 +101,7 @@ class NGLocator {
 
             if (iconImageId) {
                 this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
-                	if (error) return console.error(error)
+                    if (error) return console.error(error)
 
                     this.map.addImage(iconImageId, image);
                     this.map.addLayer(mapFeature);

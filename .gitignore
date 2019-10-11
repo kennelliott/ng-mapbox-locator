@@ -1,6 +1,5 @@
 .dev
 dev
-publish
 large-files
 node_modules
 *.DS_Store

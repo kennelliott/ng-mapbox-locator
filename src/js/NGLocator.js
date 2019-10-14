@@ -77,7 +77,6 @@ class NGLocator {
 
         this.map = new mapboxgl.Map(this.mapOptions);
 
-        console.log(this.map, this.map.getZoom(), this.mapOptions)
         this.map.addControl(new mapboxgl.NavigationControl());
         this.map.scrollZoom.disable();
         this.map.dragRotate.disable();
@@ -110,11 +109,47 @@ class NGLocator {
 
     }
 
-    updateMapLayer(f,i) {
+    updateMapLayer(f, i) {
         //setlayoutproperty
         //setpaintproperty
-        this.map.getSource(f.id).setData(f.source.data)
+        if (f.source.data) {
+            this.map.getSource(f.id).setData(f.source.data)
+        }
+        if (f.paint) {
+            for (let key in f.paint) {
+                this.map.setPaintProperty(f.id, key, f.paint[key]);
+            }
+        }
+        if (f.layout) {
+
+            const iconImageId = f.layout["icon-image"];
+            const hasImage = this.map.hasImage(iconImageId)
+
+            if (iconImageId && !hasImage) {
+                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                    if (error) return console.error(error)
+
+                    this.map.addImage(iconImageId, image);
+                    setTimeout(()=>{
+                        for (let key in f.layout) {
+                        console.log("HELLLO", key, f.layout[key], iconImageId)
+                        this.map.setLayoutProperty(f.id, key, f.layout[key]);
+                    }
+                },30)
+                    
+                })
+
+            } else {
+                for (let key in f.layout) {
+                    this.map.setLayoutProperty(f.id, key, f.layout[key]);
+                }
+            }
+
+
+        }
     }
+
+
 
 
     mapLoadEvent() {
@@ -133,17 +168,25 @@ class NGLocator {
         this.mapOptions = opts
     }
     setMapFeatures(features) {
-        console.log("SETMAPFEATURE", features)
-        features.forEach((f, i) => {
+        this.mapFeatures = features;
+        this.mapFeatures.forEach((f, i) => {
             if (this.map.getSource(f.id)) {
-                this.updateMapLayer(f,i)
+                this.updateMapLayer(f, i)
             } else {
-                 this.addMapLayer(f,i)
+                this.addMapLayer(f, i)
             }
-            console.log(`${i}`, this.map.getSource(f.id))
         })
 
         // this.mapFeatures = opts
+    }
+
+    setStyle(styleId) {
+        this.mapOptions.style = this.parseStyle(styleId)
+        this.map.setStyle(this.mapOptions.style)
+        // setting the style kills the layers; reload the layers
+        this.map.once('style.load', () => {
+            this.mapLoadEvent()
+        })
     }
 
 

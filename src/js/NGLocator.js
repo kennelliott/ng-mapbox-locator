@@ -30,9 +30,9 @@ class NGLocator {
                 iconRoot: "ngm-assets/img",
                 mapFeatures: [],
                 mapOptions: {}
-            }, opts, DOMConfig );
+            }, opts, DOMConfig);
 
-           // deep merge DOM config mapOptions into defaults into this.mapOptions
+            // deep merge DOM config mapOptions into defaults into this.mapOptions
             this.mapOptions = Object.assign({}, {
                 center: [0, 0],
                 zoom: 1,
@@ -94,27 +94,58 @@ class NGLocator {
 
     }
 
+    addMapLayer(mapFeature, i) {
+        const iconImageId = mapFeature.layout["icon-image"];
+
+        if (iconImageId) {
+            this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                if (error) return console.error(error)
+
+                this.map.addImage(iconImageId, image);
+                this.map.addLayer(mapFeature);
+            })
+        } else {
+            this.map.addLayer(mapFeature);
+        }
+
+    }
+
+    updateMapLayer(f,i) {
+        //setlayoutproperty
+        //setpaintproperty
+        this.map.getSource(f.id).setData(f.source.data)
+    }
+
+
     mapLoadEvent() {
+        // https://docs.mapbox.com/mapbox-gl-js/example/drag-a-point/
         // loop through features, load icons if necessary
         this.mapFeatures.forEach((mapFeature, i) => {
-            const iconImageId = mapFeature.layout["icon-image"];
-
-            if (iconImageId) {
-                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
-                    if (error) return console.error(error)
-
-                    this.map.addImage(iconImageId, image);
-                    this.map.addLayer(mapFeature);
-                })
-            } else {
-                this.map.addLayer(mapFeature);
-            }
+            this.addMapLayer(mapFeature, i)
         })
 
         // kill the crashing labels at edge on initial load
         this.edgeLabelCrashKiller()
 
     }
+
+    setMapOptions(opts) {
+        this.mapOptions = opts
+    }
+    setMapFeatures(features) {
+        console.log("SETMAPFEATURE", features)
+        features.forEach((f, i) => {
+            if (this.map.getSource(f.id)) {
+                this.updateMapLayer(f,i)
+            } else {
+                 this.addMapLayer(f,i)
+            }
+            console.log(`${i}`, this.map.getSource(f.id))
+        })
+
+        // this.mapFeatures = opts
+    }
+
 
     edgeLabelCrashKiller() {
         // from here

@@ -93,7 +93,7 @@ class NGLocator {
 
     }
 
-    addMapLayer(mapFeature, i) {
+    addMapLayer(mapFeature) {
         const iconImageId = mapFeature.layout["icon-image"];
 
         if (iconImageId) {
@@ -109,7 +109,11 @@ class NGLocator {
 
     }
 
-    updateMapLayer(f, i) {
+    removeMapLayer(mapFeature) {
+        this.map.removeLayer(mapFeature.id)
+    }
+
+    updateMapLayer(f) {
         //setlayoutproperty
         //setpaintproperty
         if (f.source.data) {
@@ -130,13 +134,13 @@ class NGLocator {
                     if (error) return console.error(error)
 
                     this.map.addImage(iconImageId, image);
-                    setTimeout(()=>{
+                    // BUG FIX. setting layout property right after addimage leads to not rendering
+                    setTimeout(() => {
                         for (let key in f.layout) {
-                        console.log("HELLLO", key, f.layout[key], iconImageId)
-                        this.map.setLayoutProperty(f.id, key, f.layout[key]);
-                    }
-                },30)
-                    
+                            this.map.setLayoutProperty(f.id, key, f.layout[key]);
+                        }
+                    }, 50)
+
                 })
 
             } else {
@@ -167,15 +171,29 @@ class NGLocator {
     setMapOptions(opts) {
         this.mapOptions = opts
     }
-    setMapFeatures(features) {
-        this.mapFeatures = features;
-        this.mapFeatures.forEach((f, i) => {
-            if (this.map.getSource(f.id)) {
-                this.updateMapLayer(f, i)
+    setMapFeatures(newFeatures) {
+        const oldFeatures = this.mapFeatures
+
+        oldFeatures.forEach((f, i) => {
+            const newFeature = newFeatures.find(newFeature => newFeature.id == f.id)
+            if (newFeature) {
+                // if (this.map.getSource(f.id)) {
+                this.updateMapLayer(newFeature)
+                // }
             } else {
-                this.addMapLayer(f, i)
+                this.removeMapLayer(f)
             }
         })
+
+        newFeatures.forEach((f,i)=>{
+            if (oldFeatures.find(newFeature => newFeature.id == f.id)) {
+            } else {
+                this.addMapLayer(f)
+            }
+        })
+
+        this.mapFeatures = newFeatures;
+
 
         // this.mapFeatures = opts
     }

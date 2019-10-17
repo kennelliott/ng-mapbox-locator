@@ -95,16 +95,22 @@ class NGLocator {
 
     addMapLayer(mapFeature) {
         const iconImageId = mapFeature.layout["icon-image"];
+        const hasImage = iconImageId ? this.map.hasImage(iconImageId) : false
+        const hasLayer = this.map.getLayer(mapFeature.id)
 
         if (iconImageId) {
-            this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
-                if (error) return console.error(error)
+            if (!hasImage) {
+                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                    if (error) return console.error(error)
 
-                this.map.addImage(iconImageId, image);
-                this.map.addLayer(mapFeature);
-            })
+                    this.map.addImage(iconImageId, image);
+                    this.map.addLayer(mapFeature);
+                })
+            }
         } else {
-            this.map.addLayer(mapFeature);
+            if (!hasLayer) {
+                this.map.addLayer(mapFeature);
+            }
         }
 
     }
@@ -185,9 +191,8 @@ class NGLocator {
             }
         })
 
-        newFeatures.forEach((f,i)=>{
-            if (oldFeatures.find(newFeature => newFeature.id == f.id)) {
-            } else {
+        newFeatures.forEach((f, i) => {
+            if (oldFeatures.find(newFeature => newFeature.id == f.id)) {} else {
                 this.addMapLayer(f)
             }
         })
@@ -199,12 +204,16 @@ class NGLocator {
     }
 
     setStyle(styleId) {
-        this.mapOptions.style = this.parseStyle(styleId)
-        this.map.setStyle(this.mapOptions.style)
-        // setting the style kills the layers; reload the layers
-        this.map.once('style.load', () => {
-            this.mapLoadEvent()
-        })
+        const newStyle = this.parseStyle(styleId)
+        // check for existing style
+        if (newStyle != this.mapOptions.style) {
+            this.mapOptions.style = newStyle
+            this.map.setStyle(this.mapOptions.style)
+            // setting the style kills the layers; reload the layers
+            this.map.once('style.load', () => {
+                this.mapLoadEvent()
+            })
+        }
     }
 
 

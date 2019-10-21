@@ -1,5 +1,4 @@
 import * as mapboxgl from 'mapbox-gl';
-mapboxgl.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
 
 const FLAG = "data-ng-locator-map-processed"
 
@@ -23,6 +22,7 @@ class NGLocator {
             const DOMConfigEl = el.querySelector('[data-ng-locator-map-options]')
             const DOMConfig = DOMConfigEl ? JSON.parse(DOMConfigEl.textContent) : {}
 
+            this.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
             // merge DOM config into top level defaults into *this*
             Object.assign(this, {
                 styleId: 'travel',
@@ -42,6 +42,7 @@ class NGLocator {
                 // maxBounds: this.config.bounds
             }, opts.mapOptions, DOMConfig.mapOptions || {});
 
+            mapboxgl.accessToken = this.accessToken
             // start the render
             this.renderEl()
             this.renderMap()

@@ -123,7 +123,6 @@ class NGLocator {
     updateMapLayer(f) {
         //setlayoutproperty
         //setpaintproperty
-        console.log(this.map)
         if (f.source.data) {
             this.map.getSource(f.id).setData(f.source.data)
         }

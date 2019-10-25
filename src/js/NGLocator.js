@@ -38,7 +38,9 @@ class NGLocator {
                 zoom: 1,
                 attributionControl: false,
                 maxZoom: 14,
-                pitchWithRotate: false
+                pitchWithRotate: false,
+                scrollZoom: false,
+                dragRotate: false
                 // maxBounds: this.config.bounds
             }, opts.mapOptions, DOMConfig.mapOptions || {});
 
@@ -79,8 +81,7 @@ class NGLocator {
         this.map = new mapboxgl.Map(this.mapOptions);
 
         this.map.addControl(new mapboxgl.NavigationControl());
-        this.map.scrollZoom.disable();
-        this.map.dragRotate.disable();
+
         this.map.touchZoomRotate.disableRotation();
 
         this.map.on('load', () => {
@@ -104,6 +105,7 @@ class NGLocator {
                 this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
                     if (error) return console.error(error)
 
+                    // this.map.addImage(iconImageId, image, {pixelRatio: window.devicePixelRatio });
                     this.map.addImage(iconImageId, image);
                     this.map.addLayer(mapFeature);
                 })
@@ -140,6 +142,7 @@ class NGLocator {
                 this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
                     if (error) return console.error(error)
 
+                    // this.map.addImage(iconImageId, image, {pixelRatio: window.devicePixelRatio });
                     this.map.addImage(iconImageId, image);
                     // BUG FIX. setting layout property right after addimage leads to not rendering
                     setTimeout(() => {

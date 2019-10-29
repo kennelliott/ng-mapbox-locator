@@ -34,8 +34,9 @@ class NGLocator {
 
             // deep merge DOM config mapOptions into defaults into this.mapOptions
             this.mapOptions = Object.assign({}, {
-                center: [0, 0],
-                zoom: 1,
+                // 0 center/zoom gets overriiden by map style (mapbox bug?)
+                center: [0.000001, 0.000001],
+                zoom: 0.000001,
                 attributionControl: false,
                 maxZoom: 14,
                 pitchWithRotate: false,
@@ -85,6 +86,9 @@ class NGLocator {
         this.map.touchZoomRotate.disableRotation();
 
         this.map.on('load', () => {
+            // the default style needs to be overriden with zoom center options??
+            // this.map.setCenter(this.mapOptions.center)
+            // this.map.setZoom(this.mapOptions.zoom)
             this.mapLoadEvent()
         });
 

@@ -53,8 +53,7 @@
   },
   "babel": {
     "presets": [
-      "@babel/preset-env",
-      "@babel/preset-react"
+      "@babel/preset-env"
     ]
   },
   "version": "1.6.2",
@@ -68,15 +67,14 @@
         "babelify",
         {
           "presets": [
-            "@babel/preset-env",
-            "@babel/preset-react"
+            "@babel/preset-env"
           ]
         }
       ]
     ]
   },
   "name": "ng-mapbox-locator",
-  "description": "There are two ways to start a map. The DOM method, and the JS method. Both accept the same options",
+  "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

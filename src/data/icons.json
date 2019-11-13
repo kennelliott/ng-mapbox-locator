@@ -1,0 +1,238 @@
+[
+  {
+    "id": "airport_a_black",
+    "src": "Airport_A_black.png"
+  },
+  {
+    "id": "airport_a_white",
+    "src": "Airport_A_white.png"
+  },
+  {
+    "id": "airport_b_black",
+    "src": "Airport_B_black.png"
+  },
+  {
+    "id": "airport_b_white",
+    "src": "Airport_B_white.png"
+  },
+  {
+    "id": "airport_c_black",
+    "src": "Airport_C_black.png"
+  },
+  {
+    "id": "airport_c_white",
+    "src": "Airport_C_white.png"
+  },
+  {
+    "id": "airport_d_black",
+    "src": "Airport_D_black.png"
+  },
+  {
+    "id": "airport_d_white",
+    "src": "Airport_D_white.png"
+  },
+  {
+    "id": "airport_e_black",
+    "src": "Airport_E_black.png"
+  },
+  {
+    "id": "airport_e_white",
+    "src": "Airport_E_white.png"
+  },
+  {
+    "id": "animal_a_black",
+    "src": "Animal_A_black.png"
+  },
+  {
+    "id": "animal_a_white",
+    "src": "Animal_A_white.png"
+  },
+  {
+    "id": "animal_b_black",
+    "src": "Animal_B_black.png"
+  },
+  {
+    "id": "animal_b_white",
+    "src": "Animal_B_white.png"
+  },
+  {
+    "id": "archeological_site_black",
+    "src": "Archeological_Site_black.png"
+  },
+  {
+    "id": "archeological_site_white",
+    "src": "Archeological_Site_white.png"
+  },
+  {
+    "id": "artifact_black",
+    "src": "Artifact_black.png"
+  },
+  {
+    "id": "artifact_white",
+    "src": "Artifact_white.png"
+  },
+  {
+    "id": "bank_black",
+    "src": "Bank_black.png"
+  },
+  {
+    "id": "bank_white",
+    "src": "Bank_white.png"
+  },
+  {
+    "id": "battle_a_black",
+    "src": "Battle_A_black.png"
+  },
+  {
+    "id": "battle_a_white",
+    "src": "Battle_A_white.png"
+  },
+  {
+    "id": "battle_b_black",
+    "src": "Battle_B_black.png"
+  },
+  {
+    "id": "battle_b_white",
+    "src": "Battle_B_white.png"
+  },
+  {
+    "id": "building_b_black",
+    "src": "Building_B_black.png"
+  },
+  {
+    "id": "building_b_white",
+    "src": "Building_B_white.png"
+  },
+  {
+    "id": "bullring_black",
+    "src": "Bullring_black.png"
+  },
+  {
+    "id": "bullring_white",
+    "src": "Bullring_white.png"
+  },
+  {
+    "id": "capital_city_a_black",
+    "src": "Capital_City_A_black.png"
+  },
+  {
+    "id": "capital_city_a_white",
+    "src": "Capital_City_A_white.png"
+  },
+  {
+    "id": "capital_city_b_black",
+    "src": "Capital_City_B_black.png"
+  },
+  {
+    "id": "capital_city_b_white",
+    "src": "Capital_City_B_white.png"
+  },
+  {
+    "id": "capital_city_d_black",
+    "src": "Capital_City_D_black.png"
+  },
+  {
+    "id": "capital_city_d_white",
+    "src": "Capital_City_D_white.png"
+  },
+  {
+    "id": "castle_a_black",
+    "src": "Castle_A_black.png"
+  },
+  {
+    "id": "castle_a_white",
+    "src": "Castle_A_white.png"
+  },
+  {
+    "id": "castle_b_black",
+    "src": "Castle_B_black.png"
+  },
+  {
+    "id": "castle_b_white",
+    "src": "Castle_B_white.png"
+  },
+  {
+    "id": "castle_c_black",
+    "src": "Castle_C_black.png"
+  },
+  {
+    "id": "castle_c_white",
+    "src": "Castle_C_white.png"
+  },
+  {
+    "id": "castle_d_black",
+    "src": "Castle_D_black.png"
+  },
+  {
+    "id": "castle_d_white",
+    "src": "Castle_D_white.png"
+  },
+  {
+    "id": "church_a_black",
+    "src": "Church_A_black.png"
+  },
+  {
+    "id": "church_a_white",
+    "src": "Church_A_white.png"
+  },
+  {
+    "id": "church_b_black",
+    "src": "Church_B_black.png"
+  },
+  {
+    "id": "church_b_white",
+    "src": "Church_B_white.png"
+  },
+  {
+    "id": "church_c_black",
+    "src": "Church_C_black.png"
+  },
+  {
+    "id": "church_c_white",
+    "src": "Church_C_white.png"
+  },
+  {
+    "id": "conflict_black",
+    "src": "Conflict_black.png"
+  },
+  {
+    "id": "conflict_white",
+    "src": "Conflict_white.png"
+  },
+  {
+    "id": "factory_black",
+    "src": "Factory_black.png"
+  },
+  {
+    "id": "factory_white",
+    "src": "Factory_white.png"
+  },
+  {
+    "id": "fire_black",
+    "src": "Fire_black.png"
+  },
+  {
+    "id": "fire_white",
+    "src": "Fire_white.png"
+  },
+  {
+    "id": "fish_black",
+    "src": "Fish_black.png"
+  },
+  {
+    "id": "fish_white",
+    "src": "Fish_white.png"
+  },
+  {
+    "id": "hot_air_balloon_black",
+    "src": "Hot_Air_Balloon_black.png"
+  },
+  {
+    "id": "hot_air_balloon_white",
+    "src": "Hot_Air_Balloon_white.png"
+  },
+  {
+    "id": "hydroelectric_black",
+    "src": ""
+  }
+]

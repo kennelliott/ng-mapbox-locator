@@ -1,4 +1,5 @@
 import * as mapboxgl from 'mapbox-gl';
+import icons from './icons.json'
 
 const FLAG = "data-ng-locator-map-processed"
 
@@ -27,7 +28,7 @@ class NGLocator {
             Object.assign(this, {
                 styleId: 'travel',
                 el: el,
-                iconRoot: "ngm-assets/img",
+                iconRoot: "ngm-assets/img/icon",
                 mapFeatures: [],
                 mapOptions: {}
             }, opts, DOMConfig);

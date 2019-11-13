@@ -1,7 +1,9 @@
 import * as mapboxgl from 'mapbox-gl';
-import icons from './icons.json'
+import icons from '../data/icons.json'
 
 const FLAG = "data-ng-locator-map-processed"
+const DEBUG = false
+
 
 class NGLocator {
     constructor(el, opts = {}) {
@@ -28,7 +30,7 @@ class NGLocator {
             Object.assign(this, {
                 styleId: 'travel',
                 el: el,
-                iconRoot: "ngm-assets/img/icon",
+                iconRoot: "ngm-assets/img/icons",
                 mapFeatures: [],
                 mapOptions: {}
             }, opts, DOMConfig);
@@ -101,17 +103,18 @@ class NGLocator {
     }
 
     addMapLayer(mapFeature) {
-        const iconImageId = mapFeature.layout["icon-image"];
-        const hasImage = iconImageId ? this.map.hasImage(iconImageId) : false
+        const iconId = mapFeature.source.data.features[0].properties.icon;
+        const iconColor = mapFeature.source.data.features[0].properties.iconColor;
+        const hasImage = iconId ? this.map.hasImage(iconId) : false
         const hasLayer = this.map.getLayer(mapFeature.id)
 
-        if (iconImageId) {
+        if (iconId) {
             if (!hasImage) {
-                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {
                     if (error) return console.error(error)
 
-                    // this.map.addImage(iconImageId, image, {pixelRatio: window.devicePixelRatio });
-                    this.map.addImage(iconImageId, image);
+                    // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
+                    this.map.addImage(iconId, image);
                     this.map.addLayer(mapFeature);
                 })
             }
@@ -140,15 +143,16 @@ class NGLocator {
         }
         if (f.layout) {
 
-            const iconImageId = f.layout["icon-image"];
-            const hasImage = this.map.hasImage(iconImageId)
+            const iconId = f.mapFeature.source.data.features[0].properties.icon;
+            const iconColor = f.mapFeature.source.data.features[0].properties.iconColor;
+            const hasImage = this.map.hasImage(iconId)
 
-            if (iconImageId && !hasImage) {
-                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+            if (iconId && !hasImage) {
+                this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {
                     if (error) return console.error(error)
 
-                    // this.map.addImage(iconImageId, image, {pixelRatio: window.devicePixelRatio });
-                    this.map.addImage(iconImageId, image);
+                    // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
+                    this.map.addImage(iconId, image);
                     // BUG FIX. setting layout property right after addimage leads to not rendering
                     setTimeout(() => {
                         for (let key in f.layout) {
@@ -274,8 +278,10 @@ class NGLocator {
     }
 
 
-    getImageUrl(id) {
-        return `${this.iconRoot}/${id.split("___")[0]}-01-01.png`
+    getImageUrl(iconId, iconColor) {
+        const iconSrc = icons.find(i=>i.id = iconId).colors[iconColor]
+        console.log(icons,iconSrc,iconId, iconColor)
+        return `${this.iconRoot}/${iconSrc}`
     }
 
 
@@ -295,6 +301,32 @@ class NGLocator {
         } else if (selectedStyle == "community") {
             addedStyle = 'mapbox://styles/jelder/cjiuzcajb6to92smm7vz0ucfk?optimize=true';
         }
+
+        if (DEBUG) {
+            addedStyle = {
+                "version": 8,
+                "sources": {
+                    "raster-tiles": {
+                        "type": "raster",
+                        "tiles": ["http://0.0.0.0:8081/large-files/geos/{z}/{x}/{y}.png"],
+                        "tileSize": 256,
+                        "attribution": 'Map tiles by <a target="_top" rel="noopener" href="http://stamen.com">Stamen Design</a>, under <a target="_top" rel="noopener" href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a target="_top" rel="noopener" href="http://openstreetmap.org">OpenStreetMap</a>, under <a target="_top" rel="noopener" href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>'
+                    }
+                },
+                    "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+                "layers": [{
+                    "id": "simple-tiles",
+                    "type": "raster",
+                    "source": "raster-tiles",
+                    "minzoom": 0,
+                    "maxzoom": 19
+                }]
+            }
+        }
+
+        console.log(addedStyle)
+
+
         return addedStyle
 
     }

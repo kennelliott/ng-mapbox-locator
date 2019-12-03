@@ -105,7 +105,8 @@ class NGLocator {
     addMapLayer(mapFeature) {
         const iconId = mapFeature.source.data.features[0].properties.icon;
         const iconColor = mapFeature.source.data.features[0].properties.iconColor;
-        const hasImage = iconId ? this.map.hasImage(iconId) : false
+        const iconUniqueId = `${iconId}_${iconColor}`
+        const hasImage = iconId ? this.map.hasImage(iconUniqueId) : false
         const hasLayer = this.map.getLayer(mapFeature.id)
 
         if (iconId) {
@@ -114,9 +115,14 @@ class NGLocator {
                     if (error) return console.error(error)
 
                     // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
-                    this.map.addImage(iconId, image);
+                    this.map.addImage(iconUniqueId, image);
                     this.map.addLayer(mapFeature);
+                    // add the image id reference to the map feature
+                    this.map.setLayoutProperty(mapFeature.id, "icon-image", iconUniqueId)
                 })
+            } else {
+                this.map.addLayer(mapFeature);
+                this.map.setLayoutProperty(mapFeature.id, "icon-image", iconUniqueId)
             }
         } else {
             if (!hasLayer) {
@@ -131,8 +137,6 @@ class NGLocator {
     }
 
     updateMapLayer(f) {
-        //setlayoutproperty
-        //setpaintproperty
         if (f.source.data) {
             this.map.getSource(f.id).setData(f.source.data)
         }
@@ -143,21 +147,22 @@ class NGLocator {
         }
         if (f.layout) {
 
-            const iconId = f.mapFeature.source.data.features[0].properties.icon;
-            const iconColor = f.mapFeature.source.data.features[0].properties.iconColor;
-            const hasImage = this.map.hasImage(iconId)
-
+            const iconId = f.source.data.features[0].properties.icon;
+            const iconColor = f.source.data.features[0].properties.iconColor;
+            const iconUniqueId = `${iconId}_${iconColor}`
+            const hasImage = this.map.hasImage(iconUniqueId)
             if (iconId && !hasImage) {
                 this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {
                     if (error) return console.error(error)
 
                     // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
-                    this.map.addImage(iconId, image);
+                    this.map.addImage(iconUniqueId, image);
                     // BUG FIX. setting layout property right after addimage leads to not rendering
                     setTimeout(() => {
                         for (let key in f.layout) {
                             this.map.setLayoutProperty(f.id, key, f.layout[key]);
                         }
+                        this.map.setLayoutProperty(f.id, "icon-image", iconUniqueId)
                     }, 50)
 
                 })
@@ -165,6 +170,9 @@ class NGLocator {
             } else {
                 for (let key in f.layout) {
                     this.map.setLayoutProperty(f.id, key, f.layout[key]);
+                }
+                if (hasImage) {
+                    this.map.setLayoutProperty(f.id, "icon-image", iconUniqueId)
                 }
             }
 
@@ -279,8 +287,9 @@ class NGLocator {
 
 
     getImageUrl(iconId, iconColor) {
-        const iconSrc = icons.find(i=>i.id = iconId).colors[iconColor]
-        console.log(icons,iconSrc,iconId, iconColor)
+
+        const iconSrc = icons.find(i=>i.id == iconId).colors[iconColor]
+        
         return `${this.iconRoot}/${iconSrc}`
     }
 

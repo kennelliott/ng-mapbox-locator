@@ -7,6 +7,12 @@ const iconList = glob.sync("src/ngm-assets/img/icons/*.png")
 
 const targetArr = []
 
+const iconNames = {
+    "poi_b" : "Point of interest",
+    "townspot_a" : "City",
+    "capital_city_a": "Capital"
+}
+
 iconList.forEach((d, i) => {
 
     const imgSize = imageSize(d)
@@ -26,7 +32,8 @@ iconList.forEach((d, i) => {
         targetArr.push({
             id: id,
             colors: targetColorObj,
-            size: [imgSize.width, imgSize.height]
+            size: [imgSize.width, imgSize.height],
+            name: iconNames[id] || undefined
         })
     }
 

@@ -42,7 +42,7 @@ const tilesUrl = 'https://tiles.nationalgeographic.com/'
 const tzoffset = (new Date()).getTimezoneOffset() * 60000;
 const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
 // CHANGE THE VERSION TO PREVENT OVERWRITE
-const version = "v1" // timePath
+const version = "v2" // timePath
 
 
 const cwd = path.basename(process.cwd());

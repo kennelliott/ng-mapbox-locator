@@ -13,9 +13,6 @@ class NGLocator {
 
             // Throw errors if necessary
             if (opts.mapOptions) {
-                if (opts.mapOptions.style) {
-                    throw new Error("NGLocator: Do not provide a url to a style, only a top level styleId is valid.")
-                }
                 if (opts.mapOptions.container) {
                     throw new Error("NGLocator: Do not provide refernce to a container. Use the top level 'el' option instead")
                 }
@@ -78,7 +75,10 @@ class NGLocator {
 
     renderMap() {
         // get style url from style id
-        this.mapOptions.style = this.parseStyle(this.styleId)
+        // can overrride with an absolute style url
+        if (!this.mapOptions.style && this.styleId) {
+            this.mapOptions.style = this.parseStyle(this.styleId)
+        }
         // container is the inserted child element
         this.mapOptions.container = this.mapEl
 
@@ -310,31 +310,6 @@ class NGLocator {
         } else if (selectedStyle == "community") {
             addedStyle = 'mapbox://styles/jelder/cjiuzcajb6to92smm7vz0ucfk?optimize=true';
         }
-
-        if (DEBUG) {
-            addedStyle = {
-                "version": 8,
-                "sources": {
-                    "raster-tiles": {
-                        "type": "raster",
-                        "tiles": ["http://0.0.0.0:8081/large-files/geos/{z}/{x}/{y}.png"],
-                        "tileSize": 256,
-                        "attribution": 'Map tiles by <a target="_top" rel="noopener" href="http://stamen.com">Stamen Design</a>, under <a target="_top" rel="noopener" href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a target="_top" rel="noopener" href="http://openstreetmap.org">OpenStreetMap</a>, under <a target="_top" rel="noopener" href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>'
-                    }
-                },
-                    "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
-                "layers": [{
-                    "id": "simple-tiles",
-                    "type": "raster",
-                    "source": "raster-tiles",
-                    "minzoom": 0,
-                    "maxzoom": 19
-                }]
-            }
-        }
-
-        console.log(addedStyle)
-
 
         return addedStyle
 

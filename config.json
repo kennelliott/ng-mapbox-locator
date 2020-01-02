@@ -66,6 +66,10 @@
             {
                 "id": "v2",
                 "url": "https://www.nationalgeographic.com/interactive-assets/nggraphics/ng-mapbox-locator/v2"
+            },
+            {
+                "id": "v2",
+                "url": "https://www.nationalgeographic.com/interactive-assets/nggraphics/ng-mapbox-locator/v2"
             }
         ]
     }

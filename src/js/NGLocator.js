@@ -103,12 +103,14 @@ class NGLocator {
     }
 
     addMapLayer(mapFeature) {
+        // bug: if there's 2 features that use the same icon, they will use the same id
+        // one will try to load while the other one hasnt returned yet, leading to "an image with this name already exists"
+
         const iconId = mapFeature.source.data.features[0].properties.icon;
         const iconColor = mapFeature.source.data.features[0].properties.iconColor;
         const iconUniqueId = `${iconId}_${iconColor}`
         const hasImage = iconId ? this.map.hasImage(iconUniqueId) : false
         const hasLayer = this.map.getLayer(mapFeature.id)
-
         if (iconId) {
             if (!hasImage) {
                 this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {

@@ -1,10 +1,11 @@
 parentdir=$(dirname `pwd`)
 
-if [ "$parentdir" = "node_modules" ]; then
+if [ -d "node_modules" ]; then
+	cd node_modules/ng-mapbox-locator
 	cp -R src/ngm-assets/img/* ../../src/ngm-assets/img && \
-	cp ../mapbox-gl/dist/mapbox-gl.css ../../src/sass/mapbox-gl.scss && \
-	cp src/sass/base.scss ../../src/sass/ng-mapbox-locator.scss
+	cp src/sass/base.scss ../../src/sass/ng-mapbox-locator.scss && \
+	cp ../mapbox-gl/dist/mapbox-gl.css ../../src/sass/mapbox-gl.scss
 else
-    echo "parent dir $parentdir"
+    echo "ngm-mapbox-locator: Unable to install local project assets"
 fi
 

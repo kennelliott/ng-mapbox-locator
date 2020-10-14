@@ -1,6 +1,9 @@
-import * as mapboxgl from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
+import icons from '../data/icons.json'
 
 const FLAG = "data-ng-locator-map-processed"
+const DEBUG = false
+
 
 class NGLocator {
     constructor(el, opts = {}) {
@@ -10,9 +13,6 @@ class NGLocator {
 
             // Throw errors if necessary
             if (opts.mapOptions) {
-                if (opts.mapOptions.style) {
-                    throw new Error("NGLocator: Do not provide a url to a style, only a top level styleId is valid.")
-                }
                 if (opts.mapOptions.container) {
                     throw new Error("NGLocator: Do not provide refernce to a container. Use the top level 'el' option instead")
                 }
@@ -27,18 +27,21 @@ class NGLocator {
             Object.assign(this, {
                 styleId: 'travel',
                 el: el,
-                iconRoot: "ngm-assets/img",
+                iconRoot: "ngm-assets/img/icons",
                 mapFeatures: [],
                 mapOptions: {}
             }, opts, DOMConfig);
 
             // deep merge DOM config mapOptions into defaults into this.mapOptions
             this.mapOptions = Object.assign({}, {
-                center: [0, 0],
-                zoom: 1,
+                // 0 center/zoom gets overriiden by map style (mapbox bug?)
+                center: [0.000001, 0.000001],
+                zoom: 0.000001,
                 attributionControl: false,
                 maxZoom: 14,
-                pitchWithRotate: false
+                pitchWithRotate: false,
+                scrollZoom: false,
+                dragRotate: false
                 // maxBounds: this.config.bounds
             }, opts.mapOptions, DOMConfig.mapOptions || {});
 
@@ -72,18 +75,23 @@ class NGLocator {
 
     renderMap() {
         // get style url from style id
-        this.mapOptions.style = this.parseStyle(this.styleId)
+        // can overrride with an absolute style url
+        if (!this.mapOptions.style && this.styleId) {
+            this.mapOptions.style = this.parseStyle(this.styleId)
+        }
         // container is the inserted child element
         this.mapOptions.container = this.mapEl
 
         this.map = new mapboxgl.Map(this.mapOptions);
 
         this.map.addControl(new mapboxgl.NavigationControl());
-        this.map.scrollZoom.disable();
-        this.map.dragRotate.disable();
+
         this.map.touchZoomRotate.disableRotation();
 
         this.map.on('load', () => {
+            // the default style needs to be overriden with zoom center options??
+            // this.map.setCenter(this.mapOptions.center)
+            // this.map.setZoom(this.mapOptions.zoom)
             this.mapLoadEvent()
         });
 
@@ -95,18 +103,28 @@ class NGLocator {
     }
 
     addMapLayer(mapFeature) {
-        const iconImageId = mapFeature.layout["icon-image"];
-        const hasImage = iconImageId ? this.map.hasImage(iconImageId) : false
-        const hasLayer = this.map.getLayer(mapFeature.id)
+        // bug: if there's 2 features that use the same icon, they will use the same id
+        // one will try to load while the other one hasnt returned yet, leading to "an image with this name already exists"
 
-        if (iconImageId) {
+        const iconId = mapFeature.source.data.features[0].properties.icon;
+        const iconColor = mapFeature.source.data.features[0].properties.iconColor;
+        const iconUniqueId = `${iconId}_${iconColor}`
+        const hasImage = iconId ? this.map.hasImage(iconUniqueId) : false
+        const hasLayer = this.map.getLayer(mapFeature.id)
+        if (iconId) {
             if (!hasImage) {
-                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+                this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {
                     if (error) return console.error(error)
 
-                    this.map.addImage(iconImageId, image);
+                    // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
+                    this.map.addImage(iconUniqueId, image);
                     this.map.addLayer(mapFeature);
+                    // add the image id reference to the map feature
+                    this.map.setLayoutProperty(mapFeature.id, "icon-image", iconUniqueId)
                 })
+            } else {
+                this.map.addLayer(mapFeature);
+                this.map.setLayoutProperty(mapFeature.id, "icon-image", iconUniqueId)
             }
         } else {
             if (!hasLayer) {
@@ -121,9 +139,6 @@ class NGLocator {
     }
 
     updateMapLayer(f) {
-        //setlayoutproperty
-        //setpaintproperty
-        console.log(this.map)
         if (f.source.data) {
             this.map.getSource(f.id).setData(f.source.data)
         }
@@ -134,19 +149,22 @@ class NGLocator {
         }
         if (f.layout) {
 
-            const iconImageId = f.layout["icon-image"];
-            const hasImage = this.map.hasImage(iconImageId)
-
-            if (iconImageId && !hasImage) {
-                this.map.loadImage(this.getImageUrl(iconImageId), (error, image) => {
+            const iconId = f.source.data.features[0].properties.icon;
+            const iconColor = f.source.data.features[0].properties.iconColor;
+            const iconUniqueId = `${iconId}_${iconColor}`
+            const hasImage = this.map.hasImage(iconUniqueId)
+            if (iconId && !hasImage) {
+                this.map.loadImage(this.getImageUrl(iconId, iconColor), (error, image) => {
                     if (error) return console.error(error)
 
-                    this.map.addImage(iconImageId, image);
+                    // this.map.addImage(iconId, image, {pixelRatio: window.devicePixelRatio });
+                    this.map.addImage(iconUniqueId, image);
                     // BUG FIX. setting layout property right after addimage leads to not rendering
                     setTimeout(() => {
                         for (let key in f.layout) {
                             this.map.setLayoutProperty(f.id, key, f.layout[key]);
                         }
+                        this.map.setLayoutProperty(f.id, "icon-image", iconUniqueId)
                     }, 50)
 
                 })
@@ -154,6 +172,9 @@ class NGLocator {
             } else {
                 for (let key in f.layout) {
                     this.map.setLayoutProperty(f.id, key, f.layout[key]);
+                }
+                if (hasImage) {
+                    this.map.setLayoutProperty(f.id, "icon-image", iconUniqueId)
                 }
             }
 
@@ -267,8 +288,11 @@ class NGLocator {
     }
 
 
-    getImageUrl(id) {
-        return `${this.iconRoot}/${id.split("___")[0]}-01-01.png`
+    getImageUrl(iconId, iconColor) {
+
+        const iconSrc = icons.find(i=>i.id == iconId).colors[iconColor]
+        
+        return `${this.iconRoot}/${iconSrc}`
     }
 
 
@@ -288,6 +312,7 @@ class NGLocator {
         } else if (selectedStyle == "community") {
             addedStyle = 'mapbox://styles/jelder/cjiuzcajb6to92smm7vz0ucfk?optimize=true';
         }
+
         return addedStyle
 
     }

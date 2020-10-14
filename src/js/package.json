@@ -1,0 +1,8 @@
+{
+    "browserify": {
+        "transform": [["babelify", { "presets": [
+            "@babel/preset-env"
+        ] }]]
+    }
+
+}

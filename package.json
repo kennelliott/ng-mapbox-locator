@@ -75,6 +75,9 @@
       ]
     ]
   },
+  "scripts": {
+    "postinstall": "./scripts/installIntoProject.sh"
+  },
   "name": "ng-mapbox-locator",
   "description": "",
   "scripts": {

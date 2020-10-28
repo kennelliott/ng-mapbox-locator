@@ -23,6 +23,10 @@ class NGLocator {
             const DOMConfig = DOMConfigEl ? JSON.parse(DOMConfigEl.textContent) : {}
 
             this.accessToken = 'pk.eyJ1IjoiamVsZGVyIiwiYSI6InpCTmhMdm8ifQ.lJcqxcME79NwtzwTNX2qNw';
+            
+            // add custom icons?
+            opts.icons = opts.icons ? [...opts.icons,...icons ] : icons
+
             // merge DOM config into top level defaults into *this*
             Object.assign(this, {
                 styleId: 'travel',
@@ -290,7 +294,7 @@ class NGLocator {
 
     getImageUrl(iconId, iconColor) {
 
-        const iconSrc = icons.find(i=>i.id == iconId).colors[iconColor]
+        const iconSrc = this.icons.find(i=>i.id == iconId).colors[iconColor]
         
         return `${this.iconRoot}/${iconSrc}`
     }

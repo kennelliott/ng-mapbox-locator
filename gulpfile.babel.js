@@ -51,7 +51,7 @@ const UTIL = {
 }
 
 const staging = false;
-const publishUrl = staging ? 'https://www-staging.nationalgeographic.com/interactive-assets/nggraphics/' : 'https://www.nationalgeographic.com/interactive-assets/nggraphics/'
+const publishUrl = 'https://interactives.natgeofe.com/high-touch/'
 const tilesUrl = 'https://tiles.nationalgeographic.com/'
 const timePath = UTIL.getTimePath()
 const templateNames = UTIL.getTemplateNames()
@@ -60,7 +60,7 @@ const cwd = path.basename(process.cwd());
 const PATHS = {
     publishUrl: publishUrl,
     tilesUrl: tilesUrl,
-    publicPrefix: publishUrl + cwd + '/' + timePath,
+    publicPrefix: publishUrl + cwd + '/builds',
     timePath: timePath,
     cwd: cwd,
     src: 'src',
@@ -395,24 +395,24 @@ gulp.task('js-prod', () => {
     return gulp.src(PATHS.dev + '/js/base.js')
         .pipe(replace({
             patterns: [{
-                    match: /@@deployRoot/g,
-                    replacement: function(a, b, c) {
-                        return PATHS.publicPrefix;
-                    }
-                },
-                {
-                    match: /(['"`])([\/.]*ngm-assets\/.+)(['"`])/g,
-                    replacement: function(fullMatch, group1, group2, group3) {
-                        if (group2.includes('require(')) {
-                            return fullMatch;
-                        } else {
-                            const p1 = path.join(PATHS.publicPrefix, group2),
-                                p2 = p1.split('https:/'),
-                                p3 = `https://${p2[1]}`;
-                            return group1 + p3 + group3;
-                        }
+                match: /@@deployRoot/g,
+                replacement: function(a, b, c) {
+                    return PATHS.publicPrefix;
+                }
+            },
+            {
+                match: /(['"`])([\/.]*ngm-assets\/.+)(['"`])/g,
+                replacement: function(fullMatch, group1, group2, group3) {
+                    if (group2.includes('require(')) {
+                        return fullMatch;
+                    } else {
+                        const p1 = path.join(PATHS.publicPrefix, group2),
+                            p2 = p1.split('https:/'),
+                            p3 = `https://${p2[1]}`;
+                        return group1 + p3 + group3;
                     }
                 }
+            }
             ]
         }))
         .pipe(uglify({ output: { comments: false } }))

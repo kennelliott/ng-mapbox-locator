@@ -160,18 +160,18 @@ Slug: ng-mapbox-locator
 ## Publish Details
 
 <!--Brief description of what you have built, and changed since last publish-->
-Publish_description: 
+Publish_description: World "locator map", used as the base for other sitewide maps. Contains style fixes from the existing version.
 
 <!-- Javascript libraries: Leave blank if you're using common libraries or are on deadline-->
-Libraries_used: None
+Libraries_used: mapbox-gl-js
 
 <!-- Should this review be expedited? -->
-Expedite_review: No
+Expedite_review: Yes
 <!-- If "Yes": 1) include requested date/time details here, and 2) ping @here in #interactives-reviewers Slack after publishing-->
-Expedite_details: 
+Expedite_details: Needed for a story publishing Feb 17, morning.
 
 <!-- Link to the graphic in unison -->
-Unison_URL:
+Unison_URL: https://preview.nationalgeographic.com/science/article/test-article-for-embed?_isPremium=false&_isMetered=false&_isPreview=true&loggedin=true
 
 <!-- Who else should be notified about this review? Use the format @gitlabFirstName.gitlabLastName -->
 Addl_reviewers:

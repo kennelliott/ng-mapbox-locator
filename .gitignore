@@ -1,6 +1,11 @@
 .dev
 dev
+publish
+.publish
 large-files
 node_modules
 *.DS_Store
 .DS_Store*
+/.publish
+/.trudy/PUBLISH_LOG.txt
+natgeo-interactives

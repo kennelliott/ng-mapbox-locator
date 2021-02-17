@@ -1,3 +1,4 @@
+import "./lib/_project.js";
 /* YOUR GRAPHIC JS HERE */
 import NGLocator from './NGLocator'
 import mapSettings from './mapSettings'

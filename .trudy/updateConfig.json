@@ -1,0 +1,20 @@
+  {
+      "include": [
+          ".",
+          ".trudy/**/*",
+          "src/html/__templates/",
+          "src/html/__components/",
+          "src/html/__partials/",
+          "src/sass/lib/",
+          "src/js/lib/"
+      ],
+      "exclude": [
+          "config.json",
+          "README.md",
+          "PUBLISH.md",
+          "package-lock.json",
+          "yarn.lock",
+          "src/js/lib/ai2html.js",
+          "src/sass/lib/ai2html.scss"
+      ]
+  }

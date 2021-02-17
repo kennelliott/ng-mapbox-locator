@@ -1,3 +1,5 @@
+@import './ngm-reset.scss';
+@import './ngm-preset.scss';
 @import './styleguide-colors.scss';
 @import './variables.scss';
 @import './ngd-footer.scss';
@@ -8,8 +10,35 @@
 	color: $colorStrongest;
 }
 
-#ng-graphic-wrap {
+#ng-graphic-wrap,
+.ng-graphic-wrap {
 	position:relative;
+}
+
+.ng-content-well-container {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 328px 0 16px;
+    position: relative;
+
+    // 1023 and smaller
+    @media (max-width: 1023px) {
+        padding: 0;
+    }
+}
+
+.ng-content-well-container-full-bleed,
+.ng-content-well-container-text {
+	max-width: 636px;
+	width: 100%;
+	margin: 0 auto;
+}
+
+.ng-content-well-container-text {
+	@media (max-width: 660px) {
+        padding: 0 12px;
+    }
 }
 
 /* page styles */

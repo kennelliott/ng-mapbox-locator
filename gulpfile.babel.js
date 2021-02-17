@@ -6,6 +6,7 @@ import gulp from 'gulp';
 import log from 'fancy-log'
 import chalk from 'chalk'
 import del from 'del';
+import globby from 'globby';
 import browserSync from 'browser-sync';
 import handlebars from 'gulp-compile-handlebars';
 import stringify from 'stringify';
@@ -23,7 +24,7 @@ import source from 'vinyl-source-stream';
 import buffer from 'vinyl-buffer';
 import replace from 'gulp-replace-task';
 import cleanCSS from 'gulp-clean-css';
-import uglify from 'gulp-uglify';
+import uglify from 'gulp-terser';
 import prefixer from 'gulp-url-prefixer';
 import inject from 'gulp-inject-string';
 import urljoin from 'urljoin';
@@ -34,34 +35,42 @@ import runSequence from 'run-sequence';
 import GraphicsDeployer from './.trudy/GraphicsDeployer/GraphicsDeployer.js';
 import trudyConfig from './config.json';
 
-import inquirer from 'inquirer'
+const UTIL = {
+    getTimePath: () => {
+        const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+        return 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
+    },
+    getTemplateNames: () => {
+        return fs.readdirSync("src/html/__templates").map(file => { return file.split(".")[0] })
+    },
+    logError: (err) => {
+        var errorMsg = err, //err.message,
+            redBoldMsg = chalk.red(errorMsg);
+        log(redBoldMsg);
+    }
+}
 
 const staging = false;
 const publishUrl = staging ? 'https://www-staging.nationalgeographic.com/interactive-assets/nggraphics/' : 'https://www.nationalgeographic.com/interactive-assets/nggraphics/'
 const tilesUrl = 'https://tiles.nationalgeographic.com/'
-const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-const timePath = 'build-' + (new Date(Date.now() - tzoffset)).toISOString().replace(/T/g, '_').replace(/:/g, '-').split('.')[0];
-// CHANGE THE VERSION TO PREVENT OVERWRITE
-const version = "v2" // timePath
-
-
+const timePath = UTIL.getTimePath()
+const templateNames = UTIL.getTemplateNames()
 const cwd = path.basename(process.cwd());
-const templates = fs.readdirSync("src/html/__templates").map(file => { return file.split(".")[0] })
 
 const PATHS = {
     publishUrl: publishUrl,
     tilesUrl: tilesUrl,
-    publicPrefix: publishUrl + cwd + '/' + version,
-    timePath: version,
+    publicPrefix: publishUrl + cwd + '/' + timePath,
+    timePath: timePath,
     cwd: cwd,
     src: 'src',
     dev: '.dev',
-    publish: 'publish/' + version,
+    publish: '.publish',
     tiles: 'large-files/tiles/',
     hbsData: 'data/hbs/',
-    html: 'src/html/**/*.html',
+    html: ['src/html/**/*.html', '!src/html/__components/*.html'], // don't hbs process __components dir, this is done on the fly
     assets: 'src/ngm-assets/**/**',
-    css: ['src/sass/**/*.{scss,css}','src/components/**/*.{scss,css}'],
+    css: ['src/sass/**/*.{scss,css}', 'src/components/**/*.{scss,css}'],
     js: 'src/js/**/*.{js,hbs}'
 };
 
@@ -89,18 +98,18 @@ const CONFIG = {
             // top level path is root
             if (req.url == "/") {
                 req.url = "/__templates/"
-            // top level template requests
+                // top level template requests
             } else if (pathSplitSlash[1] && !pathSplitSlash[2]) {
                 // check if need extension
                 req.url = "/__templates/" + pathSplitSlash[1] + (pathSplitDot.length == 1 ? ".html" : "")
-            // rewrite asset urls if top level url has a trailing slash     
+                // rewrite asset urls if top level url has a trailing slash     
             } else {
                 pathSplitSlash.forEach(function(path, i) {
                     // if assets think they're in a subdir
                     // rebuild the url to erase the subdir
-                    templates.forEach(function(template) {
+                    templateNames.forEach(function(template) {
                         if (path == template) {
-                            req.url = "/" + pathSplitSlash.slice(i+1).join("/")
+                            req.url = "/" + pathSplitSlash.slice(i + 1).join("/")
                         }
                     })
                 })
@@ -126,9 +135,29 @@ const CONFIG = {
     },
     hbs: {
         // https://github.com/kaanon/gulp-compile-handlebars/#options
-        // turn this path into partials
         batch: [PATHS.src + '/html', PATHS.src + '/html/__partials'],
         helpers: {
+            graphicPartial: (s) => {
+                const graphicPath = path.join(PATHS.src, 'html', s.hash.src)
+                if (fs.existsSync(graphicPath)) {
+                    var fileStr = fs.readFileSync(graphicPath, { encoding: 'utf8' });
+                    var firstComment = fileStr.match(/<!--([\s\S]*?)-->/)[1];
+                    var firstCommentSplit = firstComment.split("size:")
+                    // extract partial size, otherwise default
+                    var partialSize = firstCommentSplit[1] || "medium"
+                    // read layout file from size comment
+                    var componentPath = path.join(PATHS.src, 'html/__components', partialSize.trim() + ".html")
+                    if (fs.existsSync(componentPath)) {
+                        var layout = fs.readFileSync(componentPath, { encoding: 'utf8' });
+                        handlebars.Handlebars.registerPartial({ _content: fileStr });
+                        var template = handlebars.Handlebars.compile(layout, { noEscape: true });
+                        return new handlebars.Handlebars.SafeString(template())
+                    } else {
+                        UTIL.logError(`Error: ${componentPath} component does not exist`)
+                    }
+                }
+            },
+
             // take a freeform archie block (e.g.: [+text]) and turn array of values into <p> tags
             // take a string and wrap it with a p tag
             // e.g.: {{p google_doc.text}}
@@ -148,7 +177,11 @@ const CONFIG = {
                 // replace data-name, this is an illustrator thing
                 svg = svg.replace(/data-name/g, "class");
                 return new handlebars.Handlebars.SafeString(svg);
+            },
+            ifEquals: function(arg1, arg2, options) {
+                return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
             }
+
         }
     },
     hbsData: {},
@@ -160,18 +193,12 @@ const CONFIG = {
 
 };
 
-const logError = function(err) {
-    var errorMsg = err, //err.message,
-        redBoldMsg = chalk.red(errorMsg);
-    log(redBoldMsg);
-};
-
-let watchBrowserify = browserify(CONFIG.browserify)
+const watchBrowserify = browserify(CONFIG.browserify)
     .transform(babelify.configure(CONFIG.babelify))
     .transform(stringify, CONFIG.stringify)
     .transform(hbsfy);
 
-let watchBrowserifyPreProd = browserify(CONFIG.browserifyPreProd)
+const watchBrowserifyPreProd = browserify(CONFIG.browserifyPreProd)
     .transform(babelify.configure(CONFIG.babelify))
     .transform(stringify, CONFIG.stringify)
     .transform(hbsfy);
@@ -179,12 +206,12 @@ let watchBrowserifyPreProd = browserify(CONFIG.browserifyPreProd)
 /* clean */
 
 gulp.task('cleanDev', (cb) => {
-    del.sync(['./dev']);
+    del.sync([`./${PATHS.dev}`]);
     cb()
 });
 
 gulp.task('cleanPublish', (cb) => {
-    del.sync(['./publish']);
+    del.sync([`./${PATHS.publish}`]);
     cb()
 });
 
@@ -219,12 +246,12 @@ gulp.task('jsonHbs', () => {
 /* html */
 // inject _graphic.html into all layouts
 gulp.task('html', () => {
-// gulp.task('html', () => {
+    // gulp.task('html', () => {
     return gulp.src(PATHS.html)
         // take all config files and turn them into usable data for the templates
         .pipe(handlebars(CONFIG.hbsData, CONFIG.hbs))
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(gulp.dest(PATHS.dev))
@@ -235,21 +262,35 @@ gulp.task('html', () => {
 // put prefix on style and script tags ONLY on the graphic html
 // TODO: clean white space?
 gulp.task('html-prod', () => {
-    return gulp.src(PATHS.dev + '/_graphic.html')
+    return gulp.src(PATHS.dev + '/*graphic*.html')
         .pipe(inject.prepend(`<!-- ng-maps-graphics-trudy ${PATHS.cwd}/${PATHS.timePath} -->\n`))
         .pipe(prefixer.html({
             prefix: PATHS.publicPrefix,
-            tags: ['script', 'link', 'a', 'img', 'embed', 'video'],
-            attrs: ['href', 'src', 'data-src', 'source', 'poster']
+            tags: ['script', 'link', 'a', 'img', 'embed', 'video', 'source'],
+            attrs: ['href', 'src', 'data-src.*?', 'data-poster.*?', 'source', 'poster']
 
         }))
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(gulp.dest(PATHS.publish));
 });
 
+
+gulp.task('html-combine', (cb) => {
+    const graphics = globby.sync(`${PATHS.dev}/_graphic*.html`)
+    // if (graphics.length == 1) return cb()
+
+    let joinedContent = ""
+    graphics.forEach(f => {
+        joinedContent += fs.readFileSync(f, 'utf-8') + "\n\n\n\n"
+    })
+
+    fs.writeFileSync(`${PATHS.dev}/graphics_combined.html`, joinedContent)
+
+    cb()
+})
 
 /* assets */
 
@@ -275,11 +316,11 @@ gulp.task('css', () => {
         .pipe(sass().on('error', sass.logError))
         .pipe(postcss([autoprefixer({ browsers: ['last 2 versions'] })]))
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(sourcemaps.write())
-        .on('error', logError)
+        .on('error', UTIL.logError)
         .pipe(gulp.dest(PATHS.dev + '/css'))
         .pipe(browserSync.reload({ stream: true }));
 });
@@ -290,9 +331,9 @@ gulp.task('css-prod', () => {
         // .pipe(cssmin())
         .pipe(sourcemaps.init())
         .pipe(cleanCSS())
-        // .pipe(sourcemaps.write())
+        .pipe(sourcemaps.write())
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(gulp.dest(PATHS.publish + '/css'))
@@ -309,14 +350,14 @@ gulp.task('js', () => {
         return watchBrowserify
             .bundle()
             .on('error', function(err) {
-                logError(err);
+                UTIL.logError(err);
                 this.emit('end');
             })
             .pipe(source('base.js'))
             .pipe(buffer())
             .pipe(sourcemaps.init({ loadMaps: true }))
             .on('error', function(err) {
-                logError(err);
+                UTIL.logError(err);
                 this.emit('end');
             })
             .pipe(sourcemaps.write('./'))
@@ -334,14 +375,14 @@ gulp.task('js-dev-only', () => {
     return watchBrowserifyPreProd
         .bundle()
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(source('base.js'))
         .pipe(buffer())
         .pipe(sourcemaps.init({ loadMaps: true }))
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(sourcemaps.write('./'))
@@ -353,15 +394,14 @@ gulp.task('js-dev-only', () => {
 gulp.task('js-prod', () => {
     return gulp.src(PATHS.dev + '/js/base.js')
         .pipe(replace({
-            patterns: [
-                {
+            patterns: [{
                     match: /@@deployRoot/g,
                     replacement: function(a, b, c) {
                         return PATHS.publicPrefix;
                     }
                 },
                 {
-                    match: /(['"])([\/.]*ngm-assets\/[\w\/._\-\\]+)(['"])/g,
+                    match: /(['"`])([\/.]*ngm-assets\/.+)(['"`])/g,
                     replacement: function(fullMatch, group1, group2, group3) {
                         if (group2.includes('require(')) {
                             return fullMatch;
@@ -375,9 +415,9 @@ gulp.task('js-prod', () => {
                 }
             ]
         }))
-        .pipe(uglify())
+        .pipe(uglify({ output: { comments: false } }))
         .on('error', function(err) {
-            logError(err);
+            UTIL.logError(err);
             this.emit('end');
         })
         .pipe(gulp.dest(PATHS.publish + '/js'));
@@ -403,58 +443,34 @@ gulp.task('graphicsDeployer', (cb) => {
 });
 
 gulp.task('tilesDeployer', (cb) => {
-    const argv = yargs.string(["tileset", "appendPathToLatest"] ).argv
+    const argv = yargs.string(["tileset", "appendPathToLatest"]).argv
     if (argv.tileset) {
         return new GraphicsDeployer({
-            pathToCopy: path.join(PATHS.tiles,argv.tileset),
-            projectName: path.join(PATHS.cwd,argv.tileset),
+            pathToCopy: path.join(PATHS.tiles, argv.tileset),
+            projectName: path.join(PATHS.cwd, argv.tileset),
             artifactName: PATHS.timePath,
             staging: CONFIG.staging,
             publishUrl: PATHS.tilesUrl,
             publishType: "tileset",
             appendPathToLatest: argv.appendPathToLatest,
             log: "./config.json"
-        })      
-     }
+        })
+    }
 });
-
-gulp.task('pubcheck', (cb) => {
-    const question = [
-            {
-                name: 'checkOverwrite',
-                type: 'list',
-                message: `WARNING: This project is configured to publish and overwrite the previous version, ${PATHS.timePath}. Doing this will affect code in all all published ${PATHS.timePath} embeds. Sure about this? `,
-                choices: ['Yes', 'No'],
-                default: 'No'
-            }
-        ];
-
-        if (timePath !== PATHS.timePath)  {
-            inquirer.prompt(question).then((answers) => {
-                if (answers.checkOverwrite == "Yes") {
-                    cb()
-                } else {
-                    log(chalk.red('PUBLISH CANCELLED'))
-                }
-            });
-        } else {
-            cb()
-        }
-})
 
 
 // runs the main task as the files change
 gulp.task('watch', () => {
-    gulp.watch(PATHS.hbsData + '/*.*', gulp.series('html'));
-    gulp.watch(PATHS.html, gulp.series('html'));
+    gulp.watch(PATHS.hbsData + '*.*', gulp.series('jsonHbs', 'html', 'html-combine'));
+    gulp.watch(PATHS.html, gulp.series('html', 'html-combine'));
     gulp.watch(PATHS.assets, gulp.series('assets'));
     gulp.watch(PATHS.css, gulp.series('css'));
     // js is handled by watchify
 });
 
-gulp.task('dev', gulp.parallel('assets', 'css', 'js', gulp.series('jsonHbs', 'html')));
+gulp.task('dev', gulp.parallel('assets', 'css', 'js', gulp.series('jsonHbs', 'html', 'html-combine')));
 gulp.task('default', gulp.series('dev', gulp.parallel('browserSync', 'watch')));
-gulp.task('dev-pre-prod', gulp.parallel(gulp.series('jsonHbs', 'html'), 'assets', 'css', 'js-dev-only'));
-gulp.task('production', gulp.parallel('html-prod', 'assets-prod', 'css-prod', 'js-prod'));
-gulp.task('publish', gulp.series('pubcheck', 'cleanDev', 'cleanPublish', 'dev-pre-prod', 'production', 'graphicsDeployer'));
+gulp.task('dev-pre-prod', gulp.parallel(gulp.series('jsonHbs', 'html', 'html-combine'), 'assets', 'css', 'js-dev-only'));
+gulp.task('production', gulp.series('cleanDev', 'cleanPublish', 'dev-pre-prod', gulp.parallel('html-prod', 'assets-prod', 'css-prod', 'js-prod')));
+// gulp.task('publish', gulp.series('production', 'graphicsDeployer'));
 gulp.task('publish-tiles', gulp.series('tilesDeployer'));

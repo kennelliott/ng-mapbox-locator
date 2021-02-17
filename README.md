@@ -157,6 +157,27 @@ Follow this guide [here](https://docs.google.com/document/d/1c734ZEgYKZbE6BIoDhC
 
 Slug: ng-mapbox-locator
 
+## Publish Details
+
+<!--Brief description of what you have built, and changed since last publish-->
+Publish_description: 
+
+<!-- Javascript libraries: Leave blank if you're using common libraries or are on deadline-->
+Libraries_used: None
+
+<!-- Should this review be expedited? -->
+Expedite_review: No
+<!-- If "Yes": 1) include requested date/time details here, and 2) ping @here in #interactives-reviewers Slack after publishing-->
+Expedite_details: 
+
+<!-- Link to the graphic in unison -->
+Unison_URL:
+
+<!-- Who else should be notified about this review? Use the format @gitlabFirstName.gitlabLastName -->
+Addl_reviewers:
+
+## Project Details
+
 Graphics_editor: 
 
 Headline: 
@@ -174,5 +195,8 @@ Map:
 Graphic: 
 (Y/N)
 
+
+[Source_URLs]
+* https://interactives.natgeofe.com/high-touch/ng-mapbox-locator/builds/_graphic.html
 
 :ignore 

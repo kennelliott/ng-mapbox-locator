@@ -1,0 +1,64 @@
+
+/* natgeo site styles */
+
+&, p {
+	font-size: 16px;
+	font-family: 'GeoEditRegular', 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Helvetica, Arial, sans-serif;
+	font-weight: 300;
+	color: #333;
+	line-height: 1.6em;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+}
+
+p {
+	margin: 0 0 25px 0;
+}
+
+em {
+	font-family: 'GeoEditRegularItalic', 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Helvetica, Arial, sans-serif;
+}
+
+strong {
+	font-family: 'GeoEditBold', 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Helvetica, Arial, sans-serif;
+}
+
+strong em,
+em strong {
+	font-family: 'GeoEditBoldItalic', 'Franklin Gothic Medium', 'Franklin Gothic', 'ITC Franklin Gothic', Helvetica, Arial, sans-serif;
+}
+
+
+/* links */
+
+a {
+	text-decoration: none
+}
+
+a:hover,
+a:focus,
+a:active {
+	text-decoration: none
+}
+
+a:visited {
+	text-decoration: none
+}
+
+a.ngp_text-fill-link,
+a.ngp_text-fill-link:link,
+a.ngp_text-fill-link:visited {
+	background-image: linear-gradient(120deg, #fc0 0%, #fc0 100%);
+	background-position: 0 100%;
+	background-repeat: no-repeat;
+	background-size: 100% 0;
+	border-bottom: 2px solid #fc0;
+	color: #000;
+	text-decoration: none;
+	transition: background-size .125s ease-in
+}
+
+a.ngp_text-fill-link:hover {
+	background-size: 100% 100%;
+	color: #000
+}

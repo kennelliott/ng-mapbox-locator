@@ -111,6 +111,22 @@ class GraphicsDeployer {
             })
         // .catch(error => { throw new Error(error.message) })
     }
+
+    getContentTypeByFile(fileName) {
+        var rc = "application/octet-stream"
+        var fn = fileName.toLowerCase()
+
+        if (fn.indexOf(".html") >= 0) rc = "text/html"
+        else if (fn.indexOf(".css") >= 0) rc = "text/css"
+        else if (fn.indexOf(".json") >= 0) rc = "application/json"
+        else if (fn.indexOf(".js") >= 0) rc = "application/javascript"
+        else if (fn.indexOf(".png") >= 0) rc = "image/png"
+        else if (fn.indexOf(".jpg") >= 0) rc = "image/jpg"
+
+        return rc
+    }
+
+
     settlePromises(arr) {
 
 
@@ -160,7 +176,8 @@ class GraphicsDeployer {
                     const s3Params = {
                         Bucket: this.s3Bucket,
                         Key: s3Path,
-                        Body: fileStream
+                        Body: fileStream,
+                        ContentType: this.getContentTypeByFile(file)
                     }
 
                     // handle file read error

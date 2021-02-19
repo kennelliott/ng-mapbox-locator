@@ -55,6 +55,18 @@
             "@babel/preset-env"
         ]
     },
+    "browserify": {
+        "transform": [
+            [
+                "babelify",
+                {
+                    "presets": [
+                        "@babel/preset-env"
+                    ]
+                }
+            ]
+        ]
+    },
     "scripts": {
         "postinstall": "./scripts/installIntoProject.sh"
     },

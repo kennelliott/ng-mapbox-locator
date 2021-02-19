@@ -199,4 +199,7 @@ Graphic:
 [Source_URLs]
 * https://interactives.natgeofe.com/high-touch/ng-mapbox-locator/builds/_graphic.html
 
+[Merge_request_URLs]
+* https://gitlab.disney.com/dtci/webdev/natgeo-interactives/-/merge_requests/30
+
 :ignore 

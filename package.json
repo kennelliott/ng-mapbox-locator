@@ -54,6 +54,9 @@
             "@babel/preset-env"
         ]
     },
+    "scripts": {
+        "postinstall": "./scripts/installIntoProject.sh"
+    },
     "version": "1.7.0",
     "unisonFriendly": true,
     "dependencies": {

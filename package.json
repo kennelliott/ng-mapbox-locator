@@ -1,5 +1,6 @@
 {
-    "name": "trudy-project",
+    "name": "ng-mapbox-locator",
+    "main": "src/js/NGLocator.js",
     "repository": "none",
     "license": "MIT",
     "devDependencies": {
